@@ -1,12 +1,22 @@
 # 【初学者】AWSハンズオン②仮想サーバ（EC2）の作成
 
 ## はじめに
-お疲れ様です、__[株式会社協栄情報](https://www.cp-info.co.jp/)__システム3部の__[いなむら](https://twitter.com/t9z_a)__です。
+今回は前回記事の[【初学者】AWSハンズオン①VPC構築](https://qiita.com/i3no29/items/3c36ee1fe93d5c7f6f0d)の続きから、__仮想サーバ([EC2](https://aws.amazon.com/jp/ec2/?ec2-whats-new.sort-by=item.additionalFields.postDateTime&ec2-whats-new.sort-order=desc))__についてのハンズオン記事を書いていきます。
 
-今回は前回記事の[【初学者】AWSハンズオン①VPC構築](https://qiita.com/i3no29/items/3c36ee1fe93d5c7f6f0d)の続きから、__仮想サーバ(EC2)__についてのハンズオン記事を書いていきます。
+##概要
+[EC2](https://aws.amazon.com/jp/ec2/?ec2-whats-new.sort-by=item.additionalFields.postDateTime&ec2-whats-new.sort-order=desc)（＝Amazon　Elastic　Compute Cloudの略称）
+AWS上に仮想サーバを構築することが出来る技術
 
-## 概要
-仮想サーバ(EC2)__（①AWS操作用の公開鍵・秘密鍵〜②セキュリティグループの作成〜③EC2を起動〜④AMIの作成）__までを構築していく手順をハンズオン形式で公開していきます。
+EC2によって起動された仮想サーバを『__インスタンス__』
+インスタンスにログインするために『__公開鍵・秘密鍵__』が必要となる
+インスタンスの仮想ファイヤーウォールを『__セキュリティグループ__』
+インスタンスの起動するための情報が含まれているもの『__AMI__』
+
+##手順概要
+仮想サーバ([EC2](https://aws.amazon.com/jp/ec2/?ec2-whats-new.sort-by=item.additionalFields.postDateTime&ec2-whats-new.sort-order=desc))__（①AWS操作用の公開鍵・秘密鍵〜②セキュリティグループの作成〜③EC2を起動〜④AMIの作成）__までを構築していく手順をハンズオン形式で公開していきます。
+
+## ①AWS操作用の公開鍵・秘密鍵
+###
 
 
 
