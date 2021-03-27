@@ -13,105 +13,51 @@ EC2によって起動された仮想サーバを『__インスタンス__』
 インスタンスの起動するための情報が含まれているもの『__AMI__』
 
 ##手順概要
-仮想サーバ([EC2](https://aws.amazon.com/jp/ec2/?ec2-whats-new.sort-by=item.additionalFields.postDateTime&ec2-whats-new.sort-order=desc))__（①AWS操作用の公開鍵・秘密鍵〜②セキュリティグループの作成〜③EC2を起動〜④AMIの作成）__までを構築していく手順をハンズオン形式で公開していきます。
+仮想サーバ([EC2](https://aws.amazon.com/jp/ec2/?ec2-whats-new.sort-by=item.additionalFields.postDateTime&ec2-whats-new.sort-order=desc))__（①EC2インスタンスを作成〜②セキュリティグループの作成〜③EC2を起動〜④AMIの作成）__までを構築していく手順をハンズオン形式で公開していきます。
 
-## ①AWS操作用の公開鍵・秘密鍵
-###
+## ①EC2インスタンスを作成
+###AWSマネジメントコンソールから【EC2】を選択する
+![スクリーンショット 2021-03-27 9.59.04.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/a868e70d-7f56-b3f9-c636-1e5200245eec.png)
+左にある【▼インスタンス】の下の【インスタンス】を選択する
+![スクリーンショット 2021-03-27 10.02.15.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/a29a73bb-a01e-1269-cf54-dca6cfb177e1.png)
+画面上右上にあるオレンジ色の【インスタンスを起動】を選択する
+![スクリーンショット 2021-03-27 10.03.06.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/c6ecf960-041c-f85b-67fb-571d558a232e.png)
+###__AMI__の選択
+これから作成するインスタンスのソフトウェア構成（OS、アプリケーションサーバ、アプリケーション）を含むテンプレート情報です
+「無料利用枠の対象」というラベルのものは無料のAMIです
+![スクリーンショット 2021-03-27 10.04.13.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/3216f0bd-6704-1fb8-6cc8-94b3212c3b44.png)
+###__インスタンスタイプ__の選択
+利用したいアプリケーションの都合により変わりますが、今回は「[無料利用枠の対象](https://aws.amazon.com/jp/free/?all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc)」のものを選択していきます。
+![スクリーンショット 2021-03-02 10.58.27.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/8a0cb363-23b6-b4ad-0c3e-5c20b041c046.png)
+###__詳細設定__の選択
 
+|主な設定項目  |説明  |
+|---|---|
+|インスタンス数  |起動するインスタンスの数の設定 |
+|購入オプション  |[スポットインスタンス](https://aws.amazon.com/jp/ec2/spot/?cards.sort-by=item.additionalFields.startDateTime&cards.sort-order=asc)として購入するかどうか？  |
+|ネットワーク |EC2を所属するVPC |
+| サブネット  |EC2が所属するサブネット |
+| 自動割り当てパブリック IP |自動的にパブリックIPを付与するかの設定 |
+|IAM ロール  |EC2にIAM権限を選択させるか|
+|シャットダウン動作 |EC2シャットダウンした際の動作を指定する |
+|終了保護の有効化  |誤って消去を防止したり、インスタンス削除を禁止する |
+|モニタリング  |CloudWatchの詳細モニタリングの有効か・無効化 |
+![スクリーンショット 2021-03-27 10.52.59.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/bc7a189c-13b9-10d9-7566-74f82c0a0260.png)
+▶︎ネットワークインターフェイス
+__サブネット__を選択するとEC2の__プライベートIP__を指定することが出来る
+指定しない場合は自動的にIPアドレスが割り当てられる（今回初期設定のままです）
+▶︎高度な詳細
+シェルスクリプトもしくはcloudinitディレクティブを記述して、インスタンス起動時の動作（パッケージのインストール、ユーザーなどの作成など）を詳細に設定することが出来るようになる（今回未設定です）
 
+###__ストレージの追加__
+EC2に関連づけるストレージを選択（今回は初期設定のままです）
+そのため初期値のルートデバイス サイズ8(GB) ボリュームタイプ　汎用SSD（gp2）　暗号化なしの状態です
+![スクリーンショット 2021-03-27 11.21.51.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/d62c9ed0-34c9-ec28-36b9-041e4df57d25.png)
 
-## ①[VPC](https://docs.aws.amazon.com/ja_jp/vpc/latest/userguide/what-is-amazon-vpc.html)
-#### リージョンの選択
-__1__：__「東京」リージョンを選択する__
-![スクリーンショット 2021-03-04 13.07.39.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/1704e95e-bffc-f0fb-13cd-0c8b1c7f89ba.png)
-#### VPCネットワークの作成
-__2__：__VPCを選択__
-![スクリーンショット 2021-03-04 13.48.40 2.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/572066ca-498f-6392-f38b-7c3ec3a2ab09.png)
-__3__：__どんどん選択して作成を進めます(クリックだけ)__
-![スクリーンショット 2021-03-04 13.23.04.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/bffa4891-7356-ecdf-6efb-66f7294d6a56.png)
-__4__：__VPCの作成__
-　ここでのCIDR（サイダー）は案件などによって変更されてくると思いますが、今は構築出来ればいいので同じCIDRの値でもOKです。
-![スクリーンショット 2021-03-04 13.33.29.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/d0f2ef20-693a-17ae-ec1f-eb1aca8d7847.png)
-__5__：__完成詳細画面__
-　ただ作る”だけ”なら5分もかからない。だからこそ手を動かして構築してみよう。次は__サブネット__を作ってみるよ。
-![スクリーンショット 2021-03-02 10.09.07.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/2a23d42e-0b62-5ce7-c81c-2555202df8a2.png)
+###__タグの追加__
+インスタンスの名称（具体的な内容など）入力しておくことで、このEC2がなんのために利用されているのかわかるようにしておきます（任意によるものでタグがなくても機能的な問題はありません）
+![スクリーンショット 2021-03-27 11.43.20.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/04f76678-f2cd-a9af-2f2d-f6c59f5bfe2d.png)
 
-## ②[サブネット](https://docs.aws.amazon.com/ja_jp/vpc/latest/userguide/VPC_Subnets.html)
-__1__:__サブネットの選択__
-　複数の小さなネットワークに分割して管理していく際の、管理単位のネットワークのことです
-![スクリーンショット 2021-03-04 13.48.40.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/c49039b6-8b2b-770a-c1f2-77b84eebbd51.png)
-__2__:__どんどん選択して作成を進めます（このショットいる？）__
-![スクリーンショット 2021-03-04 13.59.38.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/d521b9c0-f299-ff36-e2b9-b4fc86e57964.png)
-__3__:__サブネットにおける設定の部分__
-　VPC（172.31.0.0/16）の中に、サブネットAZ-a（172.31.1.0/24）とサブネットAZーc（172.31.2.0/24）を構築します。同じ値には出来ないのです。
-![スクリーンショット 2021-03-04 18.28.23.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/71fdd62b-ef3f-a890-163a-72488b04b17e.png)
-__4__:__完了__
-　ただ作る”だけ”なら5分もかからない（2回目）。だからこそ手を動かして構築してみよう。次はルートテーブルです
-![スクリーンショット 2021-03-02 10.37.15.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/0614fa4a-6fd1-cde1-3f6e-c6135890eafe.png)
-
-## ③[ルートテーブル](https://docs.aws.amazon.com/ja_jp/vpc/latest/userguide/VPC_Route_Tables.html)
-#### ルートテーブルの作成
-__1__:__ルートテーブル選択__
-　サブネットの中で稼働する__EC2インスタンス（今回未作成）__のルートを制御するためのものです。インターネットを利用して通信する場合はインターネットゲートウェイ（次の項目）をルーティング先に指定したりします。
-![スクリーンショット 2021-03-04 13.48.40 4.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/ba8cca79-569f-1216-5ee8-222b223ddb83.png)
-__2__:__ルートテーブルの作成__
-![スクリーンショット 2021-03-04 21.08.11.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/31de6f21-8416-69fa-c755-33f902fcaf33.png)
-__3__:__ルートテーブルの完成__
-　あっという間！！
-![スクリーンショット 2021-03-04 21.12.52.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/44d42727-b734-14ef-a607-540315bb9592.png)
-#### ルートテーブルとサブネットの関連付け
-　ですがルートテーブルが出来ただけなので、サブネットと関連づけていきます
-__4__:__ルートテーブル選択__
-![スクリーンショット 2021-03-04 21.20.33.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/4df96fe1-5cde-7e0e-9dd8-1e67aa92fb8d.png)
-__5__:__関連付け__
-![スクリーンショット 2021-03-04 21.33.01.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/5cde4961-835f-ff2b-2384-e21da28d124a.png)
-__6__:__完了__
-　こうやってみると関連づけられているのがわかります。最後のインターネットゲートウェイにいきましょう
-![スクリーンショット 2021-03-04 21.41.18.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/d6eb3946-dc87-d732-8a45-4f5a69b4546a.png)
-
-## ④[インターネットゲートウェイ（IGW）](https://docs.aws.amazon.com/ja_jp/vpc/latest/userguide/VPC_Internet_Gateway.html)
-#### インターネットゲートウェイの作成
-__1__:__インターネットゲートウェイ選択__
-　VPC内のEC2インスタンスがインターネットを通じて通信するさに必要になるものです
-![スクリーンショット 2021-03-04 22.19.39.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/8b65ad05-00ce-2de8-e750-db2042de4b6c.png)
-__2__:__インターネットゲートウェイ作成__
-![スクリーンショット 2021-03-04 22.19.07.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/e0495b2d-e76a-c114-3878-4f96644668ac.png)
-__3__:__インターネットゲートウェイ完成__
-![スクリーンショット 2021-03-04 22.22.07.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/380fb3c0-f995-3599-0f63-7f0f58dd5a3c.png)
-#### インターネットゲートウェイとVPCへのアタッチ
-__4__:__VPCにアタッチ__
-![スクリーンショット 2021-03-04 22.23.42.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/4d9f731c-942d-2f16-b143-c52ed49332cb.png)
-__5__:__VPCにアタッチ完成__
-先ほどの『detached』状態から、『attached』になっていることがわかります
-![スクリーンショット 2021-03-04 22.24.46.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/4f621894-f8df-5f43-5af6-9e70abb2701d.png)
-#### インターネットゲートウェイとルートテーブルの設定
-　VPCにアタッチしたことにより、ルートテーブルとインターネットゲートウェイを設定することができるようになりました、さっそく設定しましょう。
-__6__:__ルートテーブル選択する__
-![スクリーンショット 2021-03-04 22.02.08.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/8026ea95-e911-595a-fe27-75f0c5876a8c.png)
-__7__:__ルートを編集する__
-![スクリーンショット 2021-03-04 22.29.58.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/84755b23-92f9-99f3-3390-bfdebb9c5474.png)
-__※2021/03/07　追記__
-インターネットゲートウェイ（0.0.0.0/0）へのルーティングを指定しているので、サブネットが__パブリックサブネット__として定義されました（インターネットゲートウェイを指定していないサブネットを__プライベートサブネット__と言います）。
-
-__8__:__インターネットゲートウェイとルートテーブルの設定完了__
-お疲れ様でした。これでインターネットからの接続も出来るようになりました。
-が、これだと作成したVPCは__外部公開__されている状態です。そのため構成図にもある『__セキュリティグループ__』『__ネットワークACL__』のセキュリティ項目がありますが、こちらは次回に記述します。
-![スクリーンショット 2021-03-04 22.31.06.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/694365/e357f43c-beaf-5618-e921-6798214b5b73.png)
-
-## まとめ
-スクショ祭りになってしまいましたが、何かをしたいけど何をしたら__ヨクワカラナイ__なんて方の、少しでも__手を動かすための力__になれたら幸いです。
-
-間違い等ございましたら、お手数ですがご気軽にご教授いただけると幸いです。
-ここまで読んでいただき、誠にありがとうございます。
-
-※スクショのタイミングで写っているVPCのIDが異なる部分があり、ご迷惑をおかけします。内容的にはハンズオンに問題ないとしたものを選び利用しています。
-
-## 参考書籍・記事
-こちらの記事を参考にさせていただております。
-
-【参考書籍】
-[Amazon Web Services パターン別構築・運用ガイド 改](https://www.amazon.co.jp/Amazon-Web-Services-%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3%E5%88%A5%E6%A7%8B%E7%AF%89%E3%83%BB%E9%81%8B%E7%94%A8%E3%82%AC%E3%82%A4%E3%83%89-%E6%94%B9%E8%A8%82%E7%AC%AC2%E7%89%88-ebook/dp/B07BMQL59H/ref=sr_1_1?__mk_ja_JP=%E3%82%AB%E3%82%BF%E3%82%AB%E3%83%8A&dchild=1&keywords=%E3%81%82%E3%81%BE%E3%81%9E%E3%82%93+Service+%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3%E5%88%A5&qid=1614865933&sr=8-1)
-[Amazon Web Services 業務システム設計・移行ガイド](https://www.amazon.co.jp/Amazon-Web-Services-%E6%A5%AD%E5%8B%99%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E8%A8%AD%E8%A8%88%E3%83%BB%E7%A7%BB%E8%A1%8C%E3%82%AC%E3%82%A4%E3%83%89-%E4%B8%80%E7%95%AA%E5%A4%A7%E5%88%87%E3%81%AA%E7%9F%A5%E8%AD%98%E3%81%A8%E6%8A%80%E8%A1%93%E3%81%8C%E8%BA%AB%E3%81%AB%E3%81%A4%E3%81%8F-%E4%BD%90%E3%80%85%E6%9C%A8-ebook/dp/B0793JRHYC/ref=pd_vtp_2?pd_rd_w=WcDJz&pf_rd_p=726d0243-39d6-4e23-8ceb-5451be2e842b&pf_rd_r=ZGARH1YNC5B9A7V7SS22&pd_rd_r=f0cfe7b2-9a99-4276-9151-033cadccccec&pd_rd_wg=C7n6P&pd_rd_i=B0793JRHYC&psc=1)
-【サイト】
-[0から始めるAWS入門①：VPC編](https://qiita.com/hiroshik1985/items/9de2dd02c9c2f6911f3b)
-[【初心者向け】初めて VPC 環境作成してみた](https://dev.classmethod.jp/articles/myfirstnvpcsetup/)
+###__セキュリティグループの設定__
+__セキュリティグループ__（＝AWSにおけるファイヤーウォールのこと）
+このセキュリティグループはホワイトリスト方式（記述したもののみ許可する）なので、指定しなければ全て拒否することになります
